@@ -1,6 +1,8 @@
 package com.example.taskmanagement.controller;
 
 import com.example.taskmanagement.model.User;
+import com.example.taskmanagement.model.UserDTO;
+import com.example.taskmanagement.model.UserMapper;
 import com.example.taskmanagement.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+    @Autowired
+    private UserMapper userMapper;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody Map<String, String> signupRequest) {
@@ -39,7 +43,7 @@ public class AuthController {
             logger.info("User registered successfully: {}", user.getEmail());
 
             Map<String, Object> response = new HashMap<>();
-            response.put("user", user);
+            response.put("user", userMapper.toDto(user));
             response.put("token", "dummy-token"); // In a real app, generate a JWT token here
 
             return ResponseEntity.ok(response);
@@ -67,7 +71,7 @@ public class AuthController {
             logger.info("User logged in successfully: {}", user.getEmail());
 
             Map<String, Object> response = new HashMap<>();
-            response.put("user", user);
+            response.put("user", userMapper.toDto(user));
             response.put("token", "dummy-token"); // In a real app, generate a JWT token here
 
             return ResponseEntity.ok(response);

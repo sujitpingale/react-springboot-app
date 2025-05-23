@@ -33,13 +33,16 @@ const CATEGORIES = [
   'Shopping',
   'Health',
   'Education',
+  'Finance',
+  'Home',
   'Other'
 ];
 
 const PRIORITIES = [
   { value: 'LOW', label: 'Low', color: 'success' },
   { value: 'MEDIUM', label: 'Medium', color: 'warning' },
-  { value: 'HIGH', label: 'High', color: 'error' }
+  { value: 'HIGH', label: 'High', color: 'error' },
+  { value: 'URGENT', label: 'Urgent', color: 'error' }
 ];
 
 const TaskForm = ({ task, onSubmit }) => {
@@ -109,7 +112,11 @@ const TaskForm = ({ task, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      const formDataToSubmit = {
+        ...formData,
+        id: task?.id // Include the task ID if it exists (for editing)
+      };
+      onSubmit(formDataToSubmit);
     }
   };
 
@@ -264,6 +271,9 @@ const TaskForm = ({ task, onSubmit }) => {
                   onChange={handleChange}
                   label="Priority"
                   startAdornment={<FlagIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                  sx={{
+                    borderRadius: 2
+                  }}
                 >
                   {PRIORITIES.map(priority => (
                     <MenuItem key={priority.value} value={priority.value}>
@@ -301,6 +311,9 @@ const TaskForm = ({ task, onSubmit }) => {
                   onChange={handleChange}
                   label="Category"
                   startAdornment={<CategoryIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                  sx={{
+                    borderRadius: 2
+                  }}
                 >
                   {CATEGORIES.map(category => (
                     <MenuItem key={category} value={category}>

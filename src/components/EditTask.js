@@ -26,7 +26,9 @@ function EditTask({ onSubmit }) {
       }
     };
 
-    fetchTask();
+    if (id) {
+      fetchTask();
+    }
   }, [id, navigate]);
 
   if (loading) {
@@ -41,6 +43,14 @@ function EditTask({ onSubmit }) {
     return (
       <Box m={2}>
         <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  if (!task) {
+    return (
+      <Box m={2}>
+        <Alert severity="error">Task not found</Alert>
       </Box>
     );
   }

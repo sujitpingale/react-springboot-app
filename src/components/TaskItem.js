@@ -6,101 +6,84 @@ import {
   IconButton,
   Box,
   Chip,
-  Tooltip,
-  useTheme,
-  useMediaQuery
+  Stack,
+  Tooltip
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Flag as FlagIcon,
+  Category as CategoryIcon,
+  Event as EventIcon
+} from '@mui/icons-material';
 
-const statusColors = {
-  TODO: 'warning',
-  IN_PROGRESS: 'info',
-  COMPLETED: 'success'
+const priorityColors = {
+  LOW: 'success',
+  MEDIUM: 'info',
+  HIGH: 'warning',
+  URGENT: 'error'
 };
 
-const statusLabels = {
-  TODO: 'To Do',
-  IN_PROGRESS: 'In Progress',
-  COMPLETED: 'Completed'
+const priorityLabels = {
+  LOW: 'Low',
+  MEDIUM: 'Medium',
+  HIGH: 'High',
+  URGENT: 'Urgent'
 };
 
-const TaskItem = ({ task, onDelete, onEdit }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const handleDelete = (e) => {
-    e.stopPropagation();
-    onDelete(task.id);
+const TaskItem = ({ task, onUpdate, onDelete, onClick, onEdit }) => {
+  const handleStatusChange = async (newStatus) => {
+    try {
+      await onUpdate(task.id, { ...task, status: newStatus });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+    }
   };
 
-  const handleEdit = (e) => {
-    e.stopPropagation();
-    onEdit(task);
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  const handleDelete = async () => {
+    try {
+      await onDelete(task.id);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   return (
-    <Card 
-      elevation={0}
-      sx={{ 
-        mb: 2,
-        borderRadius: 2,
-        border: '1px solid',
-        borderColor: 'divider',
-        transition: 'all 0.2s ease-in-out',
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'pointer',
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: theme.shadows[2],
-          borderColor: 'primary.main'
+          boxShadow: 6
         }
       }}
+      onClick={onClick}
     >
       <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Typography 
-            variant="h6" 
-            component="h2"
-            sx={{ 
-              fontWeight: 600,
-              color: 'text.primary',
-              mb: 1
-            }}
-          >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             {task.title}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="Edit Task">
-              <IconButton 
-                onClick={handleEdit}
+          <Box>
+            <Tooltip title="Edit">
+              <IconButton
                 size="small"
-                sx={{ 
-                  color: 'primary.main',
-                  '&:hover': {
-                    backgroundColor: 'primary.lighter'
-                  }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(task);
                 }}
               >
                 <EditIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete Task">
-              <IconButton 
-                onClick={handleDelete}
+            <Tooltip title="Delete">
+              <IconButton
                 size="small"
-                sx={{ 
-                  color: 'error.main',
-                  '&:hover': {
-                    backgroundColor: 'error.lighter'
-                  }
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
                 }}
               >
                 <DeleteIcon />
@@ -109,60 +92,47 @@ const TaskItem = ({ task, onDelete, onEdit }) => {
           </Box>
         </Box>
 
-        <Typography 
-          variant="body2" 
+        <Typography
+          variant="body2"
           color="text.secondary"
-          sx={{ 
+          sx={{
             mb: 2,
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
+            overflow: 'hidden'
           }}
         >
           {task.description}
         </Typography>
 
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 1
-        }}>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Chip
+            label={task.status}
+            color={task.status === 'COMPLETED' ? 'success' : 'primary'}
+            size="small"
+          />
+          <Chip
+            icon={<FlagIcon />}
+            label={priorityLabels[task.priority]}
+            color={priorityColors[task.priority]}
+            size="small"
+          />
+          <Chip
+            icon={<CategoryIcon />}
+            label={task.category}
+            variant="outlined"
+            size="small"
+          />
+          {task.dueDate && (
             <Chip
-              label={statusLabels[task.status]}
-              color={statusColors[task.status]}
-              size="small"
-              sx={{ 
-                borderRadius: 1,
-                fontWeight: 500
-              }}
-            />
-            <Chip
-              label={`Due: ${formatDate(task.dueDate)}`}
+              icon={<EventIcon />}
+              label={new Date(task.dueDate).toLocaleDateString()}
               variant="outlined"
               size="small"
-              sx={{ 
-                borderRadius: 1,
-                fontWeight: 500
-              }}
             />
-          </Box>
-          {!isMobile && (
-            <Typography 
-              variant="caption" 
-              color="text.secondary"
-              sx={{ 
-                fontStyle: 'italic'
-              }}
-            >
-              Created by {task.userName || 'Unknown'}
-            </Typography>
           )}
-        </Box>
+        </Stack>
       </CardContent>
     </Card>
   );

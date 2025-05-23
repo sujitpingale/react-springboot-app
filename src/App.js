@@ -14,6 +14,7 @@ import Navbar from './components/Navbar';
 import TaskList from './components/TaskList';
 import TaskForm from './components/TaskForm';
 import EditTask from './components/EditTask';
+import TaskAnalytics from './components/TaskAnalytics';
 import Footer from './components/Footer';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
@@ -189,6 +190,11 @@ function AppContent() {
             <Route path="/edit/:id" element={
               <ProtectedRoute user={user}>
                 <EditTask onSubmit={handleSubmit} />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute user={user}>
+                <TaskAnalytics />
               </ProtectedRoute>
             } />
           </Routes>

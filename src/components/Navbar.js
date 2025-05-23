@@ -17,6 +17,11 @@ import AddIcon from '@mui/icons-material/Add';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import TaskIcon from '@mui/icons-material/Task';
+import {
+  Menu as MenuIcon,
+  Dashboard as DashboardIcon,
+  Analytics as AnalyticsIcon
+} from '@mui/icons-material';
 
 function Navbar({ user, onLogout }) {
   const navigate = useNavigate();
@@ -30,6 +35,11 @@ function Navbar({ user, onLogout }) {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    handleClose();
   };
 
   const handleLogout = () => {
@@ -116,11 +126,17 @@ function Navbar({ user, onLogout }) {
                 }
               }}
             >
-              <MenuItem onClick={() => {
-                handleClose();
-                navigate('/');
-              }}>
-                My Tasks
+              <MenuItem onClick={() => handleNavigation('/')}>
+                <DashboardIcon sx={{ mr: 1 }} />
+                Tasks
+              </MenuItem>
+              <MenuItem onClick={() => handleNavigation('/create')}>
+                <AddIcon sx={{ mr: 1 }} />
+                New Task
+              </MenuItem>
+              <MenuItem onClick={() => handleNavigation('/analytics')}>
+                <AnalyticsIcon sx={{ mr: 1 }} />
+                Analytics
               </MenuItem>
               <MenuItem onClick={handleLogout}>
                 <LogoutIcon sx={{ mr: 1, fontSize: 20 }} />

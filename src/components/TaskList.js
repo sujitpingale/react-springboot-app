@@ -16,7 +16,8 @@ import {
   useTheme,
   useMediaQuery,
   Paper,
-  Fade
+  Fade,
+  Dialog
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,6 +26,20 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
 import TaskItem from './TaskItem';
+import FlagIcon from '@mui/icons-material/Flag';
+import CategoryIcon from '@mui/icons-material/Category';
+import TaskDetails from './TaskDetails';
+
+const CATEGORIES = [
+  'Work',
+  'Personal',
+  'Shopping',
+  'Health',
+  'Education',
+  'Finance',
+  'Home',
+  'Other'
+];
 
 const TaskList = () => {
   const navigate = useNavigate();
@@ -34,9 +49,12 @@ const TaskList = () => {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [sortBy, setSortBy] = useState('dueDate');
   const [sortOrder, setSortOrder] = useState('asc');
   const [error, setError] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -94,6 +112,16 @@ const TaskList = () => {
       result = result.filter(task => task.status === statusFilter);
     }
 
+    // Apply priority filter
+    if (priorityFilter !== 'ALL') {
+      result = result.filter(task => task.priority === priorityFilter);
+    }
+
+    // Apply category filter
+    if (categoryFilter !== 'ALL') {
+      result = result.filter(task => task.category === categoryFilter);
+    }
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
@@ -114,7 +142,7 @@ const TaskList = () => {
     });
 
     setFilteredTasks(result);
-  }, [tasks, searchTerm, statusFilter, sortBy, sortOrder]);
+  }, [tasks, searchTerm, statusFilter, priorityFilter, categoryFilter, sortBy, sortOrder]);
 
   const handleDelete = async (id) => {
     try {
@@ -131,6 +159,34 @@ const TaskList = () => {
 
   const toggleSortOrder = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const handleTaskUpdate = async (taskId, updatedTask) => {
+    try {
+      await axios.put(`http://localhost:8080/api/tasks/${taskId}`, updatedTask);
+      fetchTasks();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      setError('Failed to update task');
+    }
+  };
+
+  const handleTaskDelete = async (taskId) => {
+    try {
+      await axios.delete(`http://localhost:8080/api/tasks/${taskId}`);
+      fetchTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      setError('Failed to delete task');
+    }
+  };
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedTask(null);
   };
 
   return (
@@ -225,6 +281,47 @@ const TaskList = () => {
           </Grid>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
+              <InputLabel>Priority Filter</InputLabel>
+              <Select
+                value={priorityFilter}
+                label="Priority Filter"
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                startAdornment={<FlagIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                sx={{
+                  borderRadius: 2
+                }}
+              >
+                <MenuItem value="ALL">All Priorities</MenuItem>
+                <MenuItem value="LOW">Low</MenuItem>
+                <MenuItem value="MEDIUM">Medium</MenuItem>
+                <MenuItem value="HIGH">High</MenuItem>
+                <MenuItem value="URGENT">Urgent</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Category Filter</InputLabel>
+              <Select
+                value={categoryFilter}
+                label="Category Filter"
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                startAdornment={<CategoryIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+                sx={{
+                  borderRadius: 2
+                }}
+              >
+                <MenuItem value="ALL">All Categories</MenuItem>
+                {CATEGORIES.map(category => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
               <InputLabel>Sort By</InputLabel>
               <Select
                 value={sortBy}
@@ -269,6 +366,9 @@ const TaskList = () => {
                 task={task}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
+                onUpdate={handleTaskUpdate}
+                onDeleteTask={handleTaskDelete}
+                onClick={() => handleTaskClick(task)}
               />
             </Box>
           </Fade>
@@ -306,6 +406,20 @@ const TaskList = () => {
           <AddIcon />
         </Fab>
       )}
+
+      <Dialog
+        open={Boolean(selectedTask)}
+        onClose={handleCloseDetails}
+        maxWidth="md"
+        fullWidth
+      >
+        {selectedTask && (
+          <TaskDetails
+            task={selectedTask}
+            onClose={handleCloseDetails}
+          />
+        )}
+      </Dialog>
     </Box>
   );
 };
